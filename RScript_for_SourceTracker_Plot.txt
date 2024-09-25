@@ -1,0 +1,36 @@
+# R script to make a colorblind-friendly stacked bar plot depicting the results of SourceTracker analysis of metagenomic samples
+# See Figure 1 in Honap et al. 2023  (https://doi.org/10.1002/ajpa.24735) for example plot
+
+# Load necessary libraries
+library(reshape2)
+library(ggplot2)
+
+# Read input file containing SourceTracker results
+source_tracker_results <- read.csv(file = "SourceTracker_Results.csv", sep = ",", header = TRUE)
+
+# Convert to data frame
+source_tracker_df <- as.data.frame(source_tracker_results)
+
+# Melt the data for plotting
+melted_data <- melt(source_tracker_df, id.vars = "PopID")
+melted_data$PopID <- as.character(melted_data$PopID)
+melted_data$PopID <- factor(melted_data$PopID, levels = unique(melted_data$PopID))
+
+# Define a color-blind friendly palette
+cbPalette <- c("#56B4E9", "#E69F00", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#999999")
+
+# Create the stacked barplot
+source_plot <- ggplot(melted_data, aes(x = PopID, y = value, fill = variable)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = cbPalette) +
+  theme_classic() +
+  theme(
+    text = element_text(size = 9),
+    axis.text.x = element_text(size = 8, angle = 90, hjust = 1, vjust = 0.5)
+  )
+
+# Save the plot to a file
+ggsave("SourceTracker_Plot.png", source_plot, width = 8, height = 6)
+
+# Display the final plot
+source_plot
